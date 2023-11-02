@@ -17,6 +17,8 @@ condition, the actual message, or the package where it occurs.
   class and the trace where relevant warnings/messages occur
 - `recover_on_warnings()` / `recover_on_messages()` let you enter the
   debugger in a chosen frame when a relevant warning/message occurs
+- `recover_on_errors()` is a bit like `options(error = recover)` but
+  with control on class, package and message text.
 
 ## Installation
 
@@ -154,7 +156,7 @@ suppress_warnings(fun2(), .classes = "dplyr_warning_join")
 #> 4     1     2     3
 ```
 
-Enter the debugger conditionally
+Enter the debugger conditionally:
 
 ``` r
 recover_on_messages(fun(), startsWith, "Joining")

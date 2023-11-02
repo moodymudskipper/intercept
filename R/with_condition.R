@@ -8,7 +8,7 @@ with_condition <- function(.expr, condition, handler, .f = NULL, ..., .classes =
       is.null(.classes) || inherits(cond, .classes)
     package_qualifies <-
       is.null(.packages) ||
-      any(setdiff(sapply(sys.frames(), function(e) environmentName(topenv(e))), c("base", "intercept")) %in% .packages)
+      any(sapply(sys.frames(), function(e) environmentName(topenv(e))) %in% .packages)
     if (body_qualifies && class_qualifies && package_qualifies) {
       handler(cond)
     }

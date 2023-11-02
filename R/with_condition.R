@@ -16,7 +16,9 @@ with_condition <- function(.expr, condition, handler, .f = NULL, ..., .classes =
 
   if (condition == "message") {
     withCallingHandlers( .expr, message = handler0)
-  } else {
+  } else if (condition == "warning") {
     withCallingHandlers( .expr, warning = handler0)
+  } else {
+    withCallingHandlers( .expr, error = handler0)
   }
 }

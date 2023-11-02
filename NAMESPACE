@@ -2,6 +2,7 @@
 
 export(abort_on_messages)
 export(abort_on_warnings)
+export(recover_on_errors)
 export(recover_on_messages)
 export(recover_on_warnings)
 export(suppress_messages)

@@ -6,6 +6,7 @@
 \alias{abort_on_warnings}
 \alias{recover_on_messages}
 \alias{recover_on_warnings}
+\alias{recover_on_errors}
 \alias{suppress_messages}
 \alias{suppress_warnings}
 \alias{with_verbose_messages}
@@ -19,6 +20,8 @@ abort_on_warnings(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL)
 recover_on_messages(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL)
 
 recover_on_warnings(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL)
+
+recover_on_errors(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL)
 
 suppress_messages(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL)
 

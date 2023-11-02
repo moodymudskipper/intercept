@@ -1,0 +1,21 @@
+#' @export
+#' @rdname suppress_messages
+abort_on_messages <- function(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL) {
+  handler <- function(cond) {
+    msg <- sprintf("message of class <%s>", paste(class(cond), collapse = "/"))
+    message(msg)
+    rlang::abort(cond$message, call = NULL)
+  }
+  with_condition(.expr, "message", handler, .f, ..., .classes = .classes, .packages = .packages)
+}
+
+#' @export
+#' @rdname suppress_messages
+abort_on_warnings <- function(.expr, .f = NULL, ..., .classes = NULL, .packages = NULL) {
+  handler <- function(cond) {
+    msg <- sprintf("warning of class <%s>", paste(class(cond), collapse = "/"))
+    message(msg)
+    rlang::abort(cond$message, call = NULL)
+  }
+  with_condition(.expr, "warning", handler, .f, ..., .classes = .classes, .packages = .packages)
+}

@@ -1,0 +1,168 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# intercept
+
+Messages and warnings are sometimes hard to debug because there's no simple
+way to know where they occur. {intercept} provides some helpers to trigger behaviors
+conditionally depending on the class of the condition, the actual message, or the
+package where it occurs.
+
+* `suppress_warnings()` / `suppress_messages()` remove only warnings and messages that qualify
+* `abort_on_warnings()` / `abort_on_messages()` fail on relevant warnings/messages only,
+  a bit like `options(warn = 2)` but restricted in scope
+* `with_verbose_warnings()` / `with_verbose_messages()` print the error class and the trace where
+relevant warnings/messages occur
+* `recover_on_warnings()` / `recover_on_messages()` let you enter the debugger in a chosen frame
+ when a relevant warning/message occurs 
+
+## Installation
+
+You can install the development version of intercept like so:
+
+``` r
+devtools::install_github("moodymudskipper/intercept")
+```
+
+## Example
+
+```{r, error = TRUE}
+library(intercept)
+library(dplyr, warn.conflicts = FALSE)
+fun <- function() {
+  left_join(tibble(a = 1, b = 2), tibble(a = 1, c = 3))
+}
+
+# triggers a message because of implicit join column choice
+fun()
+
+# just like suppressMessage() by default
+suppress_messages(fun())
+
+# doesn't qualify, message is not suppressed
+suppress_messages(fun(), endsWith, "Joining")
+
+# qualifies
+suppress_messages(fun(), startsWith, "Joining")
+
+# we can use regular expressions
+suppress_messages(fun(), "w.th")
+
+# or packages
+suppress_messages(fun(), .packages = "dplyr")
+
+# abort selectively, same arguments
+abort_on_messages(fun(), .packages = "dplyr")
+```
+
+we can print additional info about messages or warnings, conditionally if we want,
+here without any condition
+
+```{r, eval = FALSE}
+fun2 <- function() {
+  left_join(tibble(a = c(1,1), b = 2), tibble(a = c(1,1), c = 3), by = "a")
+}
+
+with_verbose_warnings(fun2())
+#> warning of class <dplyr_warning_join_relationship_many_to_many/dplyr_warning_join/dplyr_w#> arning/rlang_warning/warning/condition>
+#> Detected an unexpected many-to-many relationship between `x` and `y`.
+#>      ▆
+#>   1. ├─intercept::with_verbose_warnings(fun2())
+#>   2. │ └─intercept:::with_condition(...) at intercept/R/with_verbose.R:22:2
+#>   3. │   └─base::withCallingHandlers(.expr, warning = handler0) at #> intercept/R/with_condition.R:20:4
+#>   4. ├─global fun2() at intercept/R/with_verbose.R:22:2
+#>   5. │ ├─dplyr::left_join(...)
+#>   6. │ └─dplyr:::left_join.data.frame(...)
+#>   7. │   └─dplyr:::join_mutate(...)
+#>   8. │     └─dplyr:::join_rows(...)
+#>   9. │       └─dplyr:::dplyr_locate_matches(...)
+#>  10. │         ├─base::withCallingHandlers(...)
+#>  11. │         └─vctrs::vec_locate_matches(...)
+#>  12. ├─vctrs:::warn_matches_relationship_many_to_many(...)
+#>  13. │ └─vctrs:::warn_matches_relationship(...)
+#>  14. │   └─vctrs:::warn_matches(...)
+#>  15. │     └─vctrs:::warn_vctrs(...)
+#>  16. │       └─rlang::warn(...)
+#>  17. │         └─base::warning(cnd)
+#>  18. │           └─base::withRestarts(...)
+#>  19. │             └─base (local) withOneRestart(expr, restarts[[1L]])
+#>  20. │               └─base (local) doWithOneRestart(return(expr), restart)
+#>  21. ├─dplyr (local) `<fn>`(`<vc______>`)
+#>  22. │ └─dplyr:::rethrow_warning_join_relationship_many_to_many(cnd, error_call)
+#>  23. │   └─dplyr:::warn_join(...)
+#>  24. │     └─dplyr:::warn_dplyr(...)
+#>  25. │       └─rlang::warn(...)
+#>  26. │         └─base::warning(cnd)
+#>  27. │           └─base::withRestarts(...)
+#>  28. │             └─base (local) withOneRestart(expr, restarts[[1L]])
+#>  29. │               └─base (local) doWithOneRestart(return(expr), restart)
+#>  30. └─intercept (local) `<fn>`(`<dp______>`)
+#>  31.   └─intercept (local) handler(cond) at intercept/R/with_condition.R:13:6
+#> # A tibble: 4 × 3
+#>       a     b     c
+#>   <dbl> <dbl> <dbl>
+#> 1     1     2     3
+#> 2     1     2     3
+#> 3     1     2     3
+#> 4     1     2     3
+#> Warning message:
+#> In left_join(tibble(a = c(1, 1), b = 2), tibble(a = c(1, 1), c = 3),  :
+#>   Detected an unexpected many-to-many relationship between `x` and `y`.
+#> ℹ Row 1 of `x` matches multiple rows in `y`.
+#> ℹ Row 1 of `y` matches multiple rows in `x`.
+#> ℹ If a many-to-many relationship is expected, set `relationship = "many-to-many"` to #> silence this warning.
+
+# we can remove messages or warnings depending on class too
+suppress_warnings(fun2(), .classes = "dplyr_warning_join")
+#> # A tibble: 4 × 3
+#>       a     b     c
+#>   <dbl> <dbl> <dbl>
+#> 1     1     2     3
+#> 2     1     2     3
+#> 3     1     2     3
+#> 4     1     2     3
+```
+
+Enter the debugger conditionally:
+
+```{r, eval = FALSE}
+recover_on_messages(fun(), startsWith, "Joining")
+#> message of class <rlang_message/message/condition>
+#> Joining with `by = join_by(a)`
+#> 
+#> Enter a frame number, or 0 to exit   
+#> 
+#>  1: recover_on_messages(fun(), startsWith, "Joining")
+#>  2: recover.R#9: with_condition(.expr, "message", handler, .f, ..., .cla
+#>  3: with_condition.R#18: withCallingHandlers(.expr, message = handler0)
+#>  4: with_condition.R#18: fun()
+#>  5: #2: left_join(tibble(a = 1, b = 2), tibble(a = 1, c = 3))
+#>  6: left_join.data.frame(tibble(a = 1, b = 2), tibble(a = 1, c = 3))
+#>  7: join_mutate(x = x, y = y, by = by, type = "full", suffix = suffix, n
+#>  8: join_by_common(x_names, y_names, error_call = error_call)
+#>  9: inform(glue("Joining with `by = join_by({by_names})`"))
+#> 10: withRestarts(muffleMessage = function() NULL, {
+#>     signalCondition(c
+#> 11: withOneRestart(expr, restarts[[1]])
+#> 12: doWithOneRestart(return(expr), restart)
+#> 13: signalCondition(cnd)
+#> 14: (function (cond) 
+#> {
+#>     msg <- cli::ansi_strip(conditionMessage(cond))
+#> 
+#> 15: with_condition.R#13: handler(cond)
+#> 
+#> Selection: 
+```

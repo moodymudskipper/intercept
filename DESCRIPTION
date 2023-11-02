@@ -1,0 +1,12 @@
+Package: intercept
+Title: Intercept Messages and Warnings Based on Class, Package or Regular Expression
+Version: 0.0.0.9000
+Authors@R: 
+    person("Antoine", "Fabri", , "antoine.fabri@gmail.com", role = c("aut", "cre"))
+Description: A collection of functions to catch warnings and messages and conditionally
+  display additional contextual information, fail, or enter the debugger depending
+  on the class of the condition, the package where it occurs, or a regular expression.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
